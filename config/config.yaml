@@ -1,10 +1,17 @@
 train:
-    train_sets:
+    data_sets:
     - bittiger_train
-    test_sets:
+test:
+    data_sets:
     - bittiger_test
-
 serve:
     model: foo
 
 logging: debug
+
+# all images will be reshaped to 360*640*3
+image_height: 360
+image_width: 640
+
+# percentage of data used for validation
+holdout_percentage: 0.1

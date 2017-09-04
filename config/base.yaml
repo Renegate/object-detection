@@ -1,8 +1,15 @@
-datasets:
+data_sets:
 - name: bittiger_train
   url: https://s3-us-west-2.amazonaws.com/us-office/competition/training.zip
+  compression_format: zip
+  folder_name: training
+  data_format: jpg
+  label_format: idl
 - name: bittiger_test
   url: https://s3-us-west-2.amazonaws.com/us-office/competition/testing.zip
+  compression_format: zip
+  folder_name: testing
+  data_format: jpg
 
 data_raw_dir: assets/data/raw
 data_tfrecords_dir: assets/data/tfrecords

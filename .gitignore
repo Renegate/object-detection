@@ -105,3 +105,6 @@ ENV/
 
 # data
 assets/
+
+# mac
+.DS_Store
