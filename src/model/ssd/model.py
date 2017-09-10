@@ -2,7 +2,8 @@ import os
 
 import tensorflow as tf
 
-from src.extern.nets import ssd_vgg_300
+from src.extern.nets import ssd_vgg_300, np_methods
+from src.extern.notebooks import visualization
 from src.extern.preprocessing import ssd_vgg_preprocessing
 from src.model.base_model import BaseModel
 from src.model.ssd.model_constants import ModelConstants
@@ -23,6 +24,10 @@ class SSDModel(BaseModel):
         self.localisations = None
         self.img_input = None  # tf placeholder
         self.bbox_img = None
+        self.net_shape = (300, 300)
+        self.ssd_anchors = None
+        self.select_threshold=0.5
+        self.nms_threshold=0.45
 
     def train(self, train_set, val_set):
         logger.debug('Training ssd ...')
@@ -39,10 +44,10 @@ class SSDModel(BaseModel):
 
         print len(test_set)
         for instance in test_set:
-            # print instance
-            rimg, rpredictions, rlocalisations, rbbox_img = self._score_instance(instance[1])
-            # print rimg, rpredictions, rlocalisations, rbbox_img
-            break
+            print instance[0]
+            rclasses, rscores, rbboxes = self._score_instance(instance[1])
+
+            visualization.plt_bboxes(instance[1], rclasses, rscores, rbboxes)
 
     def serve(self, instance):
         self._load_checkpoint(ModelConstants.CHECKPOINT_TRAINED, False)
@@ -56,7 +61,6 @@ class SSDModel(BaseModel):
         config = tf.ConfigProto(log_device_placement=False, gpu_options=gpu_options)
         self.session = tf.Session(config=config)
 
-        net_shape = (300, 300)
         data_format = 'NHWC'
         self.img_input = tf.placeholder(tf.uint8, shape=(None, None, 3))
         # Evaluation pre-processing: resize to SSD net shape.
@@ -67,7 +71,7 @@ class SSDModel(BaseModel):
             pass
         else:
             image_pre, labels_pre, bboxes_pre, self.bbox_img = ssd_vgg_preprocessing.preprocess_for_eval(
-                self.img_input, None, None, net_shape, data_format, resize=ssd_vgg_preprocessing.RESIZE_WARP_RESIZE)
+                self.img_input, None, None, self.net_shape, data_format, resize=ssd_vgg_preprocessing.RESIZE_WARP_RESIZE)
 
         self.image_4d = tf.expand_dims(image_pre, 0)
 
@@ -82,6 +86,7 @@ class SSDModel(BaseModel):
         self.session.run(tf.global_variables_initializer())
         saver = tf.train.Saver()
         saver.restore(self.session, ckpt)
+        self.ssd_anchors = ssd_net.anchors(self.net_shape)
 
     def _save_checkpoint(self, checkpoint):
         saver = tf.train.Saver()
@@ -92,5 +97,18 @@ class SSDModel(BaseModel):
         tf.summary.FileWriter(ModelConstants.FULL_ASSET_PATH, self.session.graph)
 
     def _score_instance(self, img):
-        return self.session.run([self.image_4d, self.predictions, self.localisations, self.bbox_img],
-                         feed_dict={self.img_input: img})
+        rimg, rpredictions, rlocalisations, rbbox_img = self.session.run([self.image_4d, self.predictions, self.localisations, self.bbox_img],
+                                 feed_dict={self.img_input: img})
+
+        rclasses, rscores, rbboxes = np_methods.ssd_bboxes_select(
+            rpredictions, rlocalisations, self.ssd_anchors, select_threshold=self.select_threshold,
+            img_shape=self.net_shape, num_classes=21, decode=True)
+
+        rbboxes = np_methods.bboxes_clip(rbbox_img, rbboxes)
+        rclasses, rscores, rbboxes = np_methods.bboxes_sort(rclasses, rscores, rbboxes, top_k=400)
+        rclasses, rscores, rbboxes = np_methods.bboxes_nms(rclasses, rscores, rbboxes,
+                                                           nms_threshold=self.nms_threshold)
+        # Resize bboxes to original image shape. Note: useless for Resize.WARP!
+        rbboxes = np_methods.bboxes_resize(rbbox_img, rbboxes)
+
+        return rclasses, rscores, rbboxes
