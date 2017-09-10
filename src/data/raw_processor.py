@@ -17,6 +17,7 @@ class RawProcessor(object):
                 data_set_dir = cls._get_raw_data_set_dir(name)
                 url, compression_format = conf.get('url'), conf.get('compression_format')
 
+                logger.debug('Downloading data set: {}'.format(name))
                 # skip download if data is present
                 if os.path.exists(data_set_dir) and len(os.listdir(data_set_dir)) > 0:
                     logger.debug('Skip downloading, use cached files instead.')
@@ -45,7 +46,7 @@ class RawProcessor(object):
                     for file_name, full_file_name in cls._get_files_generator(
                             os.path.join(data_set_dir, conf.get('folder_name')),
                             conf.get('data_format')):
-                        im = cv2.imread(os.path.join(data_set_dir, full_file_name))
+                        im = cv2.imread(full_file_name)
                         data_map[file_name] = im
         return data_map
 
@@ -74,7 +75,7 @@ class RawProcessor(object):
 
     @classmethod
     def _get_raw_data_set_dir(cls, name):
-        return '{}/{}'.format(Config.get('data_raw_dir'), name)
+        return os.path.join(Config.get('data_raw_dir'), name)
 
     @classmethod
     def _get_files_generator(cls, directory, extension):

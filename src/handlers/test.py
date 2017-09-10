@@ -1,17 +1,18 @@
-from src.data import RawProcessor, TFProcessor
+from src.data import RawProcessor
+from src.model import SSDModel
 from src.utils import Config, Logger
 
 logger = Logger.get_logger('TestHandler')
 
-class TestHandler(object):
 
-    data_sets = Config.get('train').get('data_sets', [])
+class TestHandler(object):
+    data_sets = Config.get('test').get('data_sets', [])
 
     @classmethod
     def handle(cls):
         cls._download()
-        cls._process()
-        cls._test()
+        test_set = cls._process()
+        cls._test(test_set)
 
     @classmethod
     def _download(cls):
@@ -22,13 +23,17 @@ class TestHandler(object):
     @classmethod
     def _process(cls):
         '''
-        Load raw data and store them as tfrecords format.
-        Skip if tfrecords are present.
+        Load raw data as list of tuples.
         :return: None
         '''
-        raw_data = RawProcessor.load_raw_data(cls.data_sets)
-
+        raw_data_map = RawProcessor.load_raw_data(cls.data_sets)
+        return [(k, raw_data_map[k], None) for k in raw_data_map]
 
     @classmethod
-    def _test(cls):
-        pass
+    def _test(cls, test_set):
+
+        model = None
+        if Config.get('model') == 'yolov2':
+            model = SSDModel()
+
+        model.test(test_set)

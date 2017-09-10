@@ -4,8 +4,8 @@ train:
 test:
     data_sets:
     - bittiger_test
-serve:
-    model: foo
+
+model: yolov2
 
 logging: debug
 

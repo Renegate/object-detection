@@ -11,5 +11,13 @@ data_sets:
   folder_name: testing
   data_format: jpg
 
+models:
+- name: ssd
+  asset_urls:
+  - name: ssd_300_vgg.ckpt.zip
+    url: https://github.com/balancap/SSD-Tensorflow/blob/master/checkpoints/ssd_300_vgg.ckpt.zip?raw=true
+
 data_raw_dir: assets/data/raw
 data_tfrecords_dir: assets/data/tfrecords
+
+models_dir: assets/models

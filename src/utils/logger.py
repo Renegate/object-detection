@@ -9,8 +9,13 @@ class Logger(object):
 
     @classmethod
     def get_logger(cls, name):
+
+        formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(name)s - %(message)s')
+
         _logger = logging.getLogger(name)
-        _logger.addHandler(logging.StreamHandler())
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        _logger.addHandler(handler)
 
         debug_enabled = Config.get('logging', 'info') == 'debug'
 

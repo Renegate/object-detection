@@ -1,5 +1,6 @@
 from random import seed, shuffle
-from src.data import RawProcessor, TFProcessor
+from src.data import RawProcessor
+from src.model import SSDModel
 from src.utils import Config, Logger
 
 logger = Logger.get_logger('TrainHandler')
@@ -12,8 +13,8 @@ class TrainHandler(object):
     @classmethod
     def handle(cls):
         cls._download()
-        cls._process()
-        cls._train()
+        train_set, val_set = cls._process()
+        cls._train(train_set, val_set)
 
     @classmethod
     def _download(cls):
@@ -25,7 +26,6 @@ class TrainHandler(object):
     def _process(cls):
         '''
         Load raw data and labels, split them into training sets and validation sets.
-        And store them as tfrecords format. Skip if tfrecords are present.
         :return: None
         '''
         raw_data_map = RawProcessor.load_raw_data(cls.data_sets)
@@ -37,14 +37,18 @@ class TrainHandler(object):
 
         split_index = int(round(len(shuffled_keys) * (1 - cls.holdout_percentage)))
         train_keys = shuffled_keys[: split_index]
-        validation_keys = shuffled_keys[split_index :]
+        val_keys = shuffled_keys[split_index :]
 
         train_set = [(k, raw_data_map[k], raw_label_map[k]) for k in train_keys]
-        validation_set = [(k, raw_data_map[k], raw_label_map[k]) for k in validation_keys]
+        val_set = [(k, raw_data_map[k], raw_label_map[k]) for k in val_keys]
 
-        TFProcessor.write('', train_set)
-        TFProcessor.write('', validation_set)
+        return train_set, val_set
 
     @classmethod
-    def _train(cls):
-        pass
+    def _train(cls, train_set, val_set):
+
+        model = None
+        if Config.get('model') == 'yolov2':
+            model = SSDModel()
+
+        model.train(train_set, val_set)
