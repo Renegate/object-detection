@@ -12,10 +12,12 @@ source env/bin/activate
 pip install -r requirements.txt
 ```
 
-Train: load pre-trained model, train, and save trained model
+Train: load pre-trained model, train (currently not implemented), and save trained model
 ```
 ./scripts/run.sh train
 ```
+If you are running at first time, you have to running training commands before testing and serving,
+because it downloads pretrained model.
 
 Test: load trained model, batch predict on test set
 ```
