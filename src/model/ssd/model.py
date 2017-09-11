@@ -12,14 +12,14 @@ SSD_TO_RAW_CLASS_MAPPING = {
     7: 1,   # vehicle
     15: 2,  # pedestrian
     2: 3,   # cyclist
-    21: 20, # traffic lights
+    # 21: 20, # traffic lights
 }
 
 RAW_TO_SSD_CLASS_MAPPING = {
     1: 7,   # vehicle
     2: 15,  # pedestrian
     3: 2,   # cyclist
-    20: 21, # traffic lights
+    # 20: 21, # traffic lights
 }
 
 logger = Logger.get_logger('SSD')
@@ -46,8 +46,8 @@ class SSDModel(BaseModel):
         logger.debug('Training ssd ...')
         logger.debug('Loading downloaded ssd model.')
         self._download_asset(ModelConstants.CHECKPOINT_PRETRAINED_FILE)
-        self._load_checkpoint(ModelConstants.CHECKPOINT_PRETRAINED, False)
-        # TODO: training
+        self._load_checkpoint(ModelConstants.CHECKPOINT_PRETRAINED, True)
+        # TODO: train
         self._save_checkpoint(ModelConstants.CHECKPOINT_TRAINED)
 
     def test(self, test_set):
@@ -74,13 +74,8 @@ class SSDModel(BaseModel):
         self.img_input = tf.placeholder(tf.uint8, shape=(None, None, 3))
         # Evaluation pre-processing: resize to SSD net shape.
 
-        if is_training == True:
-            # image_pre, labels_pre, bboxes_pre, self.bbox_img = ssd_vgg_preprocessing.preprocess_for_train(
-            #    self.img_input, None, None, net_shape, data_format, resize=ssd_vgg_preprocessing.RESIZE_WARP_RESIZE)
-            pass
-        else:
-            image_pre, labels_pre, bboxes_pre, self.bbox_img = ssd_vgg_preprocessing.preprocess_for_eval(
-                self.img_input, None, None, self.net_shape, data_format, resize=ssd_vgg_preprocessing.RESIZE_WARP_RESIZE)
+        image_pre, labels_pre, bboxes_pre, self.bbox_img = ssd_vgg_preprocessing.preprocess_for_eval(
+            self.img_input, None, None, self.net_shape, data_format, resize=ssd_vgg_preprocessing.RESIZE_WARP_RESIZE)
 
         self.image_4d = tf.expand_dims(image_pre, 0)
 
@@ -102,7 +97,7 @@ class SSDModel(BaseModel):
         ckpt = os.path.join(ModelConstants.FULL_ASSET_PATH, checkpoint)
         saver.save(self.session, ckpt, write_meta_graph=False)
 
-    def _summary(self):
+    def _save_summary(self):
         tf.summary.FileWriter(ModelConstants.FULL_ASSET_PATH, self.session.graph)
 
     def _score_instance(self, img):
@@ -136,6 +131,9 @@ class SSDModel(BaseModel):
 
     def _to_raw_class(self, ssd_class):
         return SSD_TO_RAW_CLASS_MAPPING.get(ssd_class)
+
+    def _to_ssd_class(self, raw_class):
+        return RAW_TO_SSD_CLASS_MAPPING.get(raw_class)
 
     def _to_raw_bbox(self, ssd_bbox, height, width):
 

@@ -19,7 +19,8 @@ models:
 
 videos:
 - name: drive_nyc.mp4
-  url: None
+  url: https://www.dropbox.com/s/8kkf98szpfgtk2u/drive_nyc.mp4?dl=0
+  precomputed_labels_file_name: drive_nyc.idl
 
 data_raw_dir: assets/data/raw
 data_tfrecords_dir: assets/data/tfrecords

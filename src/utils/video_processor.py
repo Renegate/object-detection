@@ -27,7 +27,6 @@ class VideoProcessor(object):
     def _process_frame(self):
         flag, frame = self.capture.read()
         compacted = self.score_fn(frame)
-        frame = cv2.flip(frame, 2)
         self.visualizer.draw(frame, compacted)
         cv2.imshow('video', frame)
         cv2.waitKey(1)

@@ -13,7 +13,8 @@ class TrainHandler(object):
     @classmethod
     def handle(cls):
         cls._download()
-        train_set, val_set = cls._process()
+        # train_set, val_set = cls._process()
+        train_set, val_set = [], []
         cls._train(train_set, val_set)
 
     @classmethod
@@ -48,7 +49,7 @@ class TrainHandler(object):
     def _train(cls, train_set, val_set):
 
         model = None
-        if Config.get('model') == 'yolov2':
+        if Config.get('model') == 'ssd':
             model = SSDModel()
 
         model.train(train_set, val_set)
