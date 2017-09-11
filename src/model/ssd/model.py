@@ -3,11 +3,24 @@ import os
 import tensorflow as tf
 
 from src.extern.nets import ssd_vgg_300, np_methods
-from src.extern.notebooks import visualization
 from src.extern.preprocessing import ssd_vgg_preprocessing
 from src.model.base_model import BaseModel
 from src.model.ssd.model_constants import ModelConstants
-from src.utils import Logger
+from src.utils import Logger, Visualizer
+
+SSD_TO_RAW_CLASS_MAPPING = {
+    7: 1,   # vehicle
+    15: 2,  # pedestrian
+    2: 3,   # cyclist
+    21: 20, # traffic lights
+}
+
+RAW_TO_SSD_CLASS_MAPPING = {
+    1: 7,   # vehicle
+    2: 15,  # pedestrian
+    3: 2,   # cyclist
+    20: 21, # traffic lights
+}
 
 logger = Logger.get_logger('SSD')
 
@@ -26,7 +39,7 @@ class SSDModel(BaseModel):
         self.bbox_img = None
         self.net_shape = (300, 300)
         self.ssd_anchors = None
-        self.select_threshold=0.5
+        self.select_threshold=0.3
         self.nms_threshold=0.45
 
     def train(self, train_set, val_set):
@@ -42,16 +55,12 @@ class SSDModel(BaseModel):
         logger.debug('Loading trained ssd model.')
         self._load_checkpoint(ModelConstants.CHECKPOINT_TRAINED, False)
 
-        print len(test_set)
-        for instance in test_set:
-            print instance[0]
-            rclasses, rscores, rbboxes = self._score_instance(instance[1])
-
-            visualization.plt_bboxes(instance[1], rclasses, rscores, rbboxes)
+        return [self._score_instance(instance[1]) for instance in test_set]
 
     def serve(self, instance):
-        self._load_checkpoint(ModelConstants.CHECKPOINT_TRAINED, False)
-        pass
+        if self.session is None:
+            self._load_checkpoint(ModelConstants.CHECKPOINT_TRAINED, False)
+        return self._score_instance(instance[1])
 
     def _load_checkpoint(self, checkpoint, is_training=True):
         slim = tf.contrib.slim
@@ -111,4 +120,28 @@ class SSDModel(BaseModel):
         # Resize bboxes to original image shape. Note: useless for Resize.WARP!
         rbboxes = np_methods.bboxes_resize(rbbox_img, rbboxes)
 
-        return rclasses, rscores, rbboxes
+        # return format:
+        # [[top_left_x, top_left_y, bot_right_x, bot_right_y, class, confidence]]
+
+        result = []
+        for cls, score, bbox in zip(rclasses, rscores, rbboxes):
+            raw_cls = self._to_raw_class(cls)
+            if raw_cls is not None:
+                top_left_x, top_left_y, \
+                bot_right_x, bot_right_y = self._to_raw_bbox(bbox, img.shape[0], img.shape[1])
+                result.append([top_left_x, top_left_y, bot_right_x, bot_right_y,
+                               raw_cls, score])
+
+        return result
+
+    def _to_raw_class(self, ssd_class):
+        return SSD_TO_RAW_CLASS_MAPPING.get(ssd_class)
+
+    def _to_raw_bbox(self, ssd_bbox, height, width):
+
+        top_left_y = int(ssd_bbox[0] * height)
+        top_left_x = int(ssd_bbox[1] * width)
+        bot_right_y = int(ssd_bbox[2] * height)
+        bot_right_x = int(ssd_bbox[3] * width)
+
+        return top_left_x, top_left_y, bot_right_x, bot_right_y

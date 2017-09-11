@@ -4,8 +4,12 @@ train:
 test:
     data_sets:
     - bittiger_test
+    output_path: ./test.idl
+    slide_show: false
+serve:
+    video: drive_nyc.mp4
 
-model: yolov2
+model: ssd
 
 logging: debug
 

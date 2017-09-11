@@ -17,7 +17,12 @@ models:
   - name: ssd_300_vgg.ckpt.zip
     url: https://github.com/balancap/SSD-Tensorflow/blob/master/checkpoints/ssd_300_vgg.ckpt.zip?raw=true
 
+videos:
+- name: drive_nyc.mp4
+  url: None
+
 data_raw_dir: assets/data/raw
 data_tfrecords_dir: assets/data/tfrecords
 
 models_dir: assets/models
+videos_dir: assets/videos

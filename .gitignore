@@ -103,8 +103,8 @@ ENV/
 # pycharm
 .idea
 
-# data
-assets/
+# assets
+assets
 
 # mac
 .DS_Store
