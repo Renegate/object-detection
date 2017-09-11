@@ -1,7 +1,7 @@
 import os
 
 import cv2
-
+import math
 from src.utils import Logger, Visualizer
 
 logger = Logger.get_logger('VideoProcessor')
@@ -21,14 +21,17 @@ class VideoProcessor(object):
             cv2.waitKey(1000)
             logger.debug('Wait for header')
 
-    def start(self):
-        for i in xrange(int(self.capture.get(cv2.CAP_PROP_FRAME_COUNT))):
-            self._process_frame()
+    def start(self, max_frame_num = 2 << 32, fps=1000):
+        num_frames = min(int(self.capture.get(cv2.CAP_PROP_FRAME_COUNT)), max_frame_num)
+        logger.debug('process first {} frames'.format(num_frames))
+
+        for i in xrange(num_frames):
+            self._process_frame(fps)
         cv2.destroyAllWindows()
 
-    def _process_frame(self):
+    def _process_frame(self, fps):
         flag, frame = self.capture.read()
         compacted = self.score_fn(frame)
         self.visualizer.draw(frame, compacted)
         cv2.imshow('video', frame)
-        cv2.waitKey(1)
+        cv2.waitKey(int(math.ceil(1000.0 / fps)))

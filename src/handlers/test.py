@@ -58,4 +58,4 @@ class TestHandler(object):
         Neither json / ujson works. Implementing my own serializer.
         :return:
         """
-        return '{{"{}": {}}}'.format(key, str(result))
+        return '{{"{}": {}}}\n'.format(key, str(result))
