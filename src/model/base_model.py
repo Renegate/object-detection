@@ -1,6 +1,5 @@
 import os
 
-from src.model.ssd.model_constants import ModelConstants
 from src.utils import Config, Logger
 
 logger = Logger.get_logger('BaseModel')
@@ -22,16 +21,16 @@ class BaseModel(object):
     def _download_asset(self, asset_name):
 
         logger.debug('Downloading asset: {}'.format(asset_name))
-        full_asset_path = ModelConstants.FULL_ASSET_PATH
+        full_asset_name = os.path.join(self.asset_dir, asset_name)
 
-        if os.path.exists(full_asset_path):
+        if os.path.exists(full_asset_name):
             logger.debug('Skip downloading, use cached files instead.')
             return
 
-        os.system('wget {} -O {}'.format(self.asset_url_map.get(asset_name), full_asset_path))
+        os.system('wget {} -O {}'.format(self.asset_url_map.get(asset_name), full_asset_name))
 
         if '.zip' in asset_name:
-            os.system('unzip {} -d {}'.format(full_asset_path, self.asset_dir))
+            os.system('unzip {} -d {}'.format(full_asset_name, self.asset_dir))
 
     def train(self, train_set, val_set):
         raise NotImplementedError()

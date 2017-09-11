@@ -5,7 +5,7 @@ test:
     data_sets:
     - bittiger_test
     output_path: ./test-2017-9-11.idl
-    slide_show: False
+    slide_show: True
 serve:
     video: drive_nyc.mp4
     max_frame_num: 1000

@@ -19,7 +19,7 @@ class ServeHandler(object):
             cls.model = SSDModel()
 
         logger.debug('Start serving ...')
-        video_path = os.path.join(Config.get('videos_dir'),
+        full_video_path = os.path.join(Config.get('videos_dir'),
                                   Config.get('serve').get('video'))
 
         url = None
@@ -32,10 +32,10 @@ class ServeHandler(object):
                 break
 
         # download video if necessary
-        if os.path.exists(video_path):
+        if os.path.exists(full_video_path):
             logger.debug('video already exists, skip downloading')
         else:
-            os.system('wget {} -O {}'.format(url, video_path))
+            os.system('curl {} --create-dirs -o {}'.format(url, full_video_path))
 
         # load precomputed labels if possible
         precomputed_labels_path = os.path.join(Config.get('videos_dir'), precomputed_labels)
@@ -50,7 +50,7 @@ class ServeHandler(object):
         score_fn = cls.process_precomputed if cls.use_precomputed == True else cls.process
         fps = 50 if cls.use_precomputed == True else 1000
 
-        video_processor = VideoProcessor(video_path, score_fn)
+        video_processor = VideoProcessor(full_video_path, score_fn)
         video_processor.start(max_frame_num=Config.get('serve').get('max_frame_num'), fps=fps)
 
         if cls.use_precomputed == False and len(cls.scores) > 0:
