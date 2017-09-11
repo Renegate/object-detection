@@ -48,7 +48,7 @@ class ServeHandler(object):
             logger.debug('precomputed labels file exists, skip real time prediction')
 
         score_fn = cls.process_precomputed if cls.use_precomputed == True else cls.process
-        fps = 100 if cls.use_precomputed == True else 1000
+        fps = 50 if cls.use_precomputed == True else 1000
 
         video_processor = VideoProcessor(video_path, score_fn)
         video_processor.start(max_frame_num=Config.get('serve').get('max_frame_num'), fps=fps)

@@ -1,7 +1,7 @@
 import os
 
 import cv2
-import math
+
 from src.utils import Logger, Visualizer
 
 logger = Logger.get_logger('VideoProcessor')
@@ -34,4 +34,4 @@ class VideoProcessor(object):
         compacted = self.score_fn(frame)
         self.visualizer.draw(frame, compacted)
         cv2.imshow('video', frame)
-        cv2.waitKey(int(math.ceil(1000.0 / fps)))
+        cv2.waitKey(max(1, 1000 / fps))
