@@ -41,6 +41,7 @@ class SSDModel(BaseModel):
         self.ssd_anchors = None
         self.select_threshold=0.3
         self.nms_threshold=0.45
+        self.visualizer = Visualizer()
 
     def train(self, train_set, val_set):
         logger.debug('Training ssd ...')
@@ -50,12 +51,21 @@ class SSDModel(BaseModel):
         # TODO: train
         self._save_checkpoint(ModelConstants.CHECKPOINT_TRAINED)
 
-    def test(self, test_set):
+    def test(self, test_set, show=False):
         logger.debug('Testing ssd ...')
         logger.debug('Loading trained ssd model.')
         self._load_checkpoint(ModelConstants.CHECKPOINT_TRAINED, False)
 
-        return [self._score_instance(instance[1]) for instance in test_set]
+        results = []
+
+        for instance in test_set:
+            result = self._score_instance(instance[1])
+            if show == True:
+                self.visualizer.draw(instance[1], result,
+                                    show=True, wait_ms=2000, img_name=instance[0])
+            results.append(result)
+
+        return results
 
     def serve(self, instance):
         if self.session is None:

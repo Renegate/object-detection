@@ -1,13 +1,12 @@
 from src.data import RawProcessor
 from src.model import SSDModel
-from src.utils import Config, Logger, Visualizer
+from src.utils import Config, Logger
 
 logger = Logger.get_logger('TestHandler')
 
 
 class TestHandler(object):
     data_sets = Config.get('test').get('data_sets', [])
-    visualizer = Visualizer()
 
     @classmethod
     def handle(cls):
@@ -37,20 +36,17 @@ class TestHandler(object):
         if Config.get('model') == 'ssd':
             model = SSDModel()
 
-        results = model.test(test_set)
-
         output_dir = Config.get('test').get('output_path')
         slide_show = Config.get('test').get('slide_show')
         json_lines = []
 
+        results = model.test(test_set, show=slide_show)
+
         for instance, result in zip(test_set, results):
             json_lines.append(cls._serialize(instance[0], result))
-            if slide_show == True:
-                cls.visualizer.draw(instance[1], result,
-                                    show=True, wait_ms=2000, img_name=instance[0])
 
-            with open(output_dir, 'w+') as f:
-                f.writelines(json_lines)
+        with open(output_dir, 'w+') as f:
+            f.writelines(json_lines)
 
     @classmethod
     def _serialize(self, key, result):
