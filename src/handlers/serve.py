@@ -35,7 +35,8 @@ class ServeHandler(object):
         if os.path.exists(full_video_path):
             logger.debug('video already exists, skip downloading')
         else:
-            os.system('wget {} -O {} --force-directories'.format(url, full_video_path))
+            os.system('mkdir -p {} && wget {} -O {} --force-directories'.format(
+                Config.get('videos_dir'), url, full_video_path))
 
         # load precomputed labels if possible
         precomputed_labels_path = os.path.join(Config.get('videos_dir'), precomputed_labels)
