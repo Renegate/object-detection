@@ -6,6 +6,7 @@ from src.utils import Logger, Visualizer
 
 logger = Logger.get_logger('VideoProcessor')
 
+
 class VideoProcessor(object):
     def __init__(self, path, score_fn):
 
@@ -21,8 +22,9 @@ class VideoProcessor(object):
             logger.debug('Wait for header')
 
     def start(self):
-        while True:
+        for i in xrange(int(self.capture.get(cv2.CAP_PROP_FRAME_COUNT))):
             self._process_frame()
+        cv2.destroyAllWindows()
 
     def _process_frame(self):
         flag, frame = self.capture.read()

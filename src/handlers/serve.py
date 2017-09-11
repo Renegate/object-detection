@@ -8,6 +8,8 @@ logger = Logger.get_logger('ServeHandler')
 
 class ServeHandler(object):
     model = None
+    scores = []
+    frame_cnt = 0
 
     @classmethod
     def handle(cls):
@@ -32,14 +34,17 @@ class ServeHandler(object):
             os.system('wget {} -O {}'.format(url, video_path))
 
         video_processor = VideoProcessor(video_path, cls.process)
-
         video_processor.start()
 
     @classmethod
     def process(cls, frame):
         # very slow
-        return cls.model.serve((None, frame, None))
+        compacted = cls.model.serve((None, frame, None))
+        cls.scores.append(compacted)
+        return compacted
 
     @classmethod
     def process_precomputed(cls, frame):
-        return
+        score = cls.scores[cls.frame_cnt]
+        cls.frame_cnt += 1
+        return score
