@@ -24,11 +24,13 @@ class ServeHandler(object):
 
         url = None
         precomputed_labels = None
+        full_annotated_path = None
         confs = Config.get('videos')
         for conf in confs:
             if conf.get('name') == Config.get('serve').get('video'):
                 url = conf.get('url')
                 precomputed_labels = conf.get('precomputed_labels')
+                full_annotated_path = os.path.join(Config.get('videos_dir'), conf.get('annotated_name'))
                 break
 
         # download video if necessary
@@ -37,6 +39,9 @@ class ServeHandler(object):
         else:
             os.system('mkdir -p {} && wget {} -O {} --force-directories'.format(
                 Config.get('videos_dir'), url, full_video_path))
+
+        logger.debug('Processing video at {}'.format(full_video_path))
+        logger.debug('Producing annotated video to {}'.format(full_annotated_path))
 
         # load precomputed labels if possible
         precomputed_labels_path = os.path.join(Config.get('videos_dir'), precomputed_labels)
@@ -51,7 +56,7 @@ class ServeHandler(object):
         score_fn = cls.process_precomputed if cls.use_precomputed == True else cls.process
         fps = 50 if cls.use_precomputed == True else 1000
 
-        video_processor = VideoProcessor(full_video_path, score_fn)
+        video_processor = VideoProcessor(full_video_path, score_fn, full_annotated_path)
         video_processor.start(max_frame_num=Config.get('serve').get('max_frame_num'), fps=fps)
 
         if cls.use_precomputed == False and len(cls.scores) > 0:

@@ -4,19 +4,15 @@ train:
 test:
     data_sets:
     - bittiger_test
-    output_path: ./test-2017-9-11.idl
+    output_path: ./test.idl
     slide_show: True
 serve:
     video: drive_nyc.mp4
-    max_frame_num: 1000
+    max_frame_num: 20000
 
 model: ssd
 
 logging: debug
-
-# all images will be reshaped to 360*640*3
-image_height: 360
-image_width: 640
 
 # percentage of data used for validation
 holdout_percentage: 0.1

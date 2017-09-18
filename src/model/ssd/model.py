@@ -49,6 +49,12 @@ class SSDModel(BaseModel):
         self._download_asset(ModelConstants.CHECKPOINT_PRETRAINED_FILE)
         self._load_checkpoint(ModelConstants.CHECKPOINT_PRETRAINED, True)
         # TODO: train
+
+        # validation
+        for instance in val_set:
+            score = self._score_instance(instance[1])
+            
+
         self._save_checkpoint(ModelConstants.CHECKPOINT_TRAINED)
 
     def test(self, test_set, show=False):
