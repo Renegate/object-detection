@@ -4,7 +4,7 @@ We use [SSD-Tensorflow](https://github.com/balancap/SSD-Tensorflow) as pre-train
 
 Team member: Jin Sun, Xintong Xia
 
-[Presentation Slides](https://docs.google.com/presentation/d/1zjTmVe6mQhGUx5bn145c0nYHdap9p5cSy_kiANv9StQ/edit?usp=sharing)
+For more details please look at our [Presentation Slides](https://docs.google.com/presentation/d/1zjTmVe6mQhGUx5bn145c0nYHdap9p5cSy_kiANv9StQ/edit?usp=sharing)
 
 Installation:
 ```

@@ -13,8 +13,7 @@ class TrainHandler(object):
     @classmethod
     def handle(cls):
         cls._download()
-        # train_set, val_set = cls._process()
-        train_set, val_set = [], []
+        train_set, val_set = cls._process()
         cls._train(train_set, val_set)
 
     @classmethod

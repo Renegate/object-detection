@@ -51,9 +51,12 @@ class SSDModel(BaseModel):
         # TODO: train
 
         # validation
+        mAP = 0.0
         for instance in val_set:
             score = self._score_instance(instance[1])
-            
+            mAP += self._mean_average_precision(score, instance[2]) / float(len(val_set))
+
+        logger.info('Pretrained checkpoint has mAP of {} on validation set'.format(mAP))
 
         self._save_checkpoint(ModelConstants.CHECKPOINT_TRAINED)
 
@@ -159,3 +162,64 @@ class SSDModel(BaseModel):
         bot_right_x = int(ssd_bbox[3] * width)
 
         return top_left_x, top_left_y, bot_right_x, bot_right_y
+
+    def _mean_average_precision(self, prediction, target):
+        # format {cls: (prediction_labels, target_labels)}
+        # where
+        # prediction_labels: [(bbox1, confidence1), (bbox2, confidence2)],
+        # target_labels: [(bbox1, confidence1), (bbox2, confidence2)]
+        class_to_labels_map = dict.fromkeys(RAW_TO_SSD_CLASS_MAPPING.keys(), ([], []))
+        mAP = 0.0
+
+        for item in prediction:
+            cls = item[4]
+            if cls in class_to_labels_map:
+                class_to_labels_map[cls][0].append((item[:4], item[5]))
+
+        for item in target:
+            cls = item[4]
+            if cls in class_to_labels_map:
+                class_to_labels_map[cls][1].append((item[:4], 1))
+
+        for _, l in class_to_labels_map.iteritems():
+            prediction_labels, target_labels = l
+            prediction_labels = sorted(prediction_labels, cmp=lambda x1, x2: -1 if x2[1] > x1[1] else 1)
+
+            AP = 0.0
+            TP = [] # 1 for TP, 0 for FP
+            for p in prediction_labels:
+                # append FP by default
+                TP.append(0)
+                for t in target_labels:
+                    if (self._iou(p[0], t[0]) > 0.5):
+                        # change it to TP
+                        TP[-1] = 1
+                        break
+
+                AP += float(sum(TP)) / float(len(TP)) / float(len(prediction_labels))
+            mAP += AP / float(len(class_to_labels_map))
+        return mAP
+
+    def _iou(self, boxA, boxB):
+        # determine the (x, y)-coordinates of the intersection rectangle
+        xA = max(boxA[0], boxB[0])
+        yA = max(boxA[1], boxB[1])
+        xB = min(boxA[2], boxB[2])
+        yB = min(boxA[3], boxB[3])
+
+        # compute the area of intersection rectangle
+        interArea = (xB - xA + 1) * (yB - yA + 1)
+
+        # compute the area of both the prediction and ground-truth
+        # rectangles
+        boxAArea = (boxA[2] - boxA[0] + 1) * (boxA[3] - boxA[1] + 1)
+        boxBArea = (boxB[2] - boxB[0] + 1) * (boxB[3] - boxB[1] + 1)
+
+        # compute the intersection over union by taking the intersection
+        # area and dividing it by the sum of prediction + ground-truth
+        # areas - the intersection area
+        iou = interArea / float(boxAArea + boxBArea - interArea)
+
+        # return the intersection over union value
+        return iou
+

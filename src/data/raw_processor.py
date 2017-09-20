@@ -48,6 +48,7 @@ class RawProcessor(object):
                             conf.get('data_format')):
                         im = cv2.imread(full_file_name)
                         data_map[file_name] = im
+
         return data_map
 
     @classmethod
